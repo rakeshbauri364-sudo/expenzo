@@ -1,0 +1,6 @@
+{
+  "appId": "in.expenzo.app",
+  "appName": "Expenzo",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

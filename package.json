@@ -1,0 +1,19 @@
+{
+  "name": "expenzo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Expenzo mobile-first expense tracker",
+  "scripts": {
+    "copy-web": "node scripts/copy-web.js",
+    "android:add": "npx cap add android",
+    "android:sync": "npm run copy-web && npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}
