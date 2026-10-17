@@ -7,8 +7,12 @@ on:
     branches:
       - main
     paths:
-      - 'www/**'
-      - 'supabase/**'
+      - 'index.html'
+      - 'app.js'
+      - 'styles.css'
+      - 'config.js'
+      - 'manifest.json'
+      - 'scripts/**'
       - 'package.json'
       - 'package-lock.json'
       - 'capacitor.config.json'
@@ -29,6 +33,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Copy web files
+        run: npm run copy-web
+
+      - name: Verify web assets
+        run: test -f www/index.html
 
       - name: Add Android platform
         run: npx cap add android
