@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#087a49">
 <meta name="description" content="Expenzo - Smart income, expense and budget manager.">
 <title>Expenzo — Smart Expense Manager</title>
@@ -12,7 +12,7 @@
 :root{color-scheme:light;--p:#087a49;--pd:#075c38;--pl:#e7f5ec;--bg:#f4f8f5;--text:#17251d;--muted:#68776e;--border:#e0e9e3;--red:#c0392b;--green:#12804a;--radius:16px}
 *{box-sizing:border-box}
 html{min-width:320px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #087a4938;outline-offset:2px}
@@ -105,10 +105,7 @@ p{margin:8px 0}
 <body>
 <main class="ex-app">
 <header class="ex-header">
-  <div class="ex-brand">
-    <div class="ex-logo">₹</div>
-    <div><h1>Expenzo</h1><p>Smart Expense Manager</p></div>
-  </div>
+  <div class="ex-brand"><div class="ex-logo">₹</div><div><h1>Expenzo</h1><p>Smart Expense Manager</p></div></div>
   <button id="languageToggle" class="ex-button secondary" type="button">English</button>
 </header>
 
@@ -117,10 +114,7 @@ p{margin:8px 0}
   <p class="ex-muted">अपने खर्च और बजट को सुरक्षित तरीके से मैनेज करें।</p>
   <div class="ex-field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="आपका email" required></div>
   <div class="ex-field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="कम से कम 6 अक्षर" required></div>
-  <div class="ex-actions">
-    <button id="loginBtn" class="ex-button" type="button">Login</button>
-    <button id="signupBtn" class="ex-button secondary" type="button">Sign Up</button>
-  </div>
+  <div class="ex-actions"><button id="loginBtn" class="ex-button" type="button">Login</button><button id="signupBtn" class="ex-button secondary" type="button">Sign Up</button></div>
   <p class="ex-muted center">या</p>
   <button id="googleLoginBtn" class="ex-button outline full" type="button">Continue with Google</button>
   <button id="offlineBtn" class="ex-button secondary full mt" type="button">बिना Login के Offline इस्तेमाल करें</button>
@@ -134,10 +128,7 @@ p{margin:8px 0}
   </div>
 
   <section id="homeView" class="app-view">
-    <section class="ex-card month-card">
-      <label for="monthFilter">महीना चुनें</label>
-      <input id="monthFilter" type="month">
-    </section>
+    <section class="ex-card month-card"><label for="monthFilter">महीना चुनें</label><input id="monthFilter" type="month"></section>
     <section class="ex-stats">
       <div class="ex-stat"><span class="ex-stat-label">कुल कमाई</span><strong id="totalIncome" class="ex-stat-value ex-positive">₹0</strong></div>
       <div class="ex-stat"><span class="ex-stat-label">कुल खर्च</span><strong id="totalExpense" class="ex-stat-value ex-negative">₹0</strong></div>
@@ -146,12 +137,11 @@ p{margin:8px 0}
     <section class="ex-card">
       <div class="section-title"><h2>मासिक बजट</h2><span>₹</span></div>
       <div class="ex-field"><label for="budgetInput">इस महीने का बजट</label><div class="budget-row"><input id="budgetInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="जैसे 10000"><button id="saveBudgetBtn" class="ex-button" type="button">सेव</button></div></div>
-      <div class="ex-progress-track"><div id="budgetProgress"></div></div>
-      <p id="budgetText" class="ex-muted">बजट सेट करें।</p>
+      <div class="ex-progress-track"><div id="budgetProgress"></div></div><p id="budgetText" class="ex-muted">बजट सेट करें।</p>
     </section>
     <section class="ex-card">
-      <div class="section-title"><h2>रिकॉर्ड</h2><button type="button" class="text-button" data-goto="recordsView">सभी देखें →</button></div>
-      <p class="ex-muted small">अपने रिकॉर्ड देखने और खोजने के लिए Records खोलें।</p>
+      <div class="section-title"><h2>हाल के रिकॉर्ड</h2><button type="button" class="text-button" data-goto="recordsView">सभी देखें →</button></div>
+      <p class="ex-muted small">रिकॉर्ड देखने, खोजने या बदलने के लिए Records टैब खोलें।</p>
       <button type="button" class="ex-button full" data-goto="addView">＋ नया रिकॉर्ड जोड़ें</button>
     </section>
   </section>
@@ -199,8 +189,7 @@ p{margin:8px 0}
         <div class="ex-field"><label for="reportPeriod">रिपोर्ट का समय</label><select id="reportPeriod"><option value="month">मासिक रिपोर्ट</option><option value="year">वार्षिक रिपोर्ट</option></select></div>
         <div class="ex-field"><label for="reportYear">साल</label><input id="reportYear" type="number" min="2000" max="2100" step="1"></div>
       </div>
-      <button id="generateReport" type="button" class="ex-button secondary full">रिपोर्ट दिखाएँ</button>
-      <div id="reportSummary"></div>
+      <button id="generateReport" type="button" class="ex-button secondary full">रिपोर्ट दिखाएँ</button><div id="reportSummary"></div>
     </section>
     <section class="ex-card"><h2>Export और Backup</h2><p class="ex-muted small">चुने गए महीने और फ़िल्टर के रिकॉर्ड एक्सपोर्ट होंगे।</p><div class="ex-actions"><button id="exportExcel" type="button" class="ex-button">Excel</button><button id="exportPdf" type="button" class="ex-button secondary">PDF</button><button id="exportCsv" type="button" class="ex-button outline">CSV</button></div></section>
   </section>
@@ -215,7 +204,6 @@ p{margin:8px 0}
   <button type="button" data-view="addView"><span class="nav-icon add-icon">＋</span><span>Add</span></button>
   <button type="button" data-view="reportsView"><span class="nav-icon">▥</span><span>Reports</span></button>
 </nav>
-
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -227,39 +215,30 @@ p{margin:8px 0}
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const nav = $("bottomNav");
-  const app = $("appPanel");
-  const auth = $("authPanel");
+  const nav = $("bottomNav"), app = $("appPanel"), auth = $("authPanel");
   const views = ["homeView","recordsView","addView","reportsView"];
-  const form = $("entryForm");
-  const toggle = $("toggleEntryForm");
+  const form = $("entryForm"), toggle = $("toggleEntryForm");
 
   function openView(id) {
-    views.forEach(view => $(view)?.classList.toggle("hidden",view !== id));
-    nav.querySelectorAll("[data-view]").forEach(btn => {
-      const active = btn.dataset.view === id;
-      btn.classList.toggle("active",active);
-      btn.setAttribute("aria-current",active ? "page" : "false");
+    views.forEach(v => $(v)?.classList.toggle("hidden",v !== id));
+    nav.querySelectorAll("[data-view]").forEach(b => {
+      b.classList.toggle("active",b.dataset.view === id);
+      b.setAttribute("aria-current",b.dataset.view === id ? "page" : "false");
     });
     if(id === "addView") {
       form?.classList.remove("hidden");
-      if(toggle) toggle.textContent = "− फॉर्म बंद करें";
+      if(toggle) toggle.textContent = lang() === "en" ? "− Close Form" : "− फॉर्म बंद करें";
     }
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
-  nav.querySelectorAll("[data-view]").forEach(btn =>
-    btn.addEventListener("click",() => openView(btn.dataset.view))
-  );
-
-  document.querySelectorAll("[data-goto]").forEach(btn =>
-    btn.addEventListener("click",() => openView(btn.dataset.goto))
-  );
+  nav.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click",() => openView(b.dataset.view)));
+  document.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click",() => openView(b.dataset.goto)));
 
   toggle?.addEventListener("click",() => {
     const opening = form.classList.contains("hidden");
     form.classList.toggle("hidden",!opening);
-    toggle.textContent = opening ? "− फॉर्म बंद करें" : "＋ नया रिकॉर्ड जोड़ें";
+    toggle.textContent = opening ? (lang()==="en"?"− Close Form":"− फॉर्म बंद करें") : (lang()==="en"?"+ Add New Record":"＋ नया रिकॉर्ड जोड़ें");
   });
 
   $("clearFilters")?.addEventListener("click",() => {
@@ -267,26 +246,149 @@ p{margin:8px 0}
     $("recordTypeFilter").value = "all";
     $("filterFrom").value = "";
     $("filterTo").value = "";
-    ["recordSearch","recordTypeFilter","filterFrom","filterTo"].forEach(id => {
-      $(id).dispatchEvent(new Event("input",{bubbles:true}));
-    });
+    ["recordSearch","recordTypeFilter","filterFrom","filterTo"].forEach(id => $(id).dispatchEvent(new Event("input",{bubbles:true})));
   });
 
-  $("records")?.addEventListener("click",event => {
-    if(event.target.closest("[data-edit]")) openView("addView");
+  $("records")?.addEventListener("click",e => {
+    if(e.target.closest("[data-edit]")) openView("addView");
   });
 
-  function updateNavVisibility() {
-    const loggedIn = app && !app.classList.contains("hidden") &&
-      auth && auth.classList.contains("hidden");
-    nav.classList.toggle("hidden",!loggedIn);
+  function updateNav() {
+    const visible = app && !app.classList.contains("hidden") && auth && auth.classList.contains("hidden");
+    nav.classList.toggle("hidden",!visible);
   }
-
   if(app && auth) {
-    new MutationObserver(updateNavVisibility).observe(app,{attributes:true,attributeFilter:["class"]});
-    new MutationObserver(updateNavVisibility).observe(auth,{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(updateNav).observe(app,{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(updateNav).observe(auth,{attributes:true,attributeFilter:["class"]});
   }
-  updateNavVisibility();
+
+  const en = {
+    "अपने अकाउंट में लॉगिन करें":"Log in to your account",
+    "अपने खर्च और बजट को सुरक्षित तरीके से मैनेज करें।":"Manage your expenses and budget securely.",
+    "आपका email":"Your email",
+    "कम से कम 6 अक्षर":"At least 6 characters",
+    "या":"OR",
+    "बिना Login के Offline इस्तेमाल करें":"Continue Offline Without Login",
+    "महीना चुनें":"Select Month",
+    "कुल कमाई":"Total Income",
+    "कुल खर्च":"Total Expense",
+    "नेट कैश बदलाव":"Net Cash Flow",
+    "मासिक बजट":"Monthly Budget",
+    "इस महीने का बजट":"Budget for this month",
+    "सेव":"Save",
+    "हाल के रिकॉर्ड":"Recent Records",
+    "सभी देखें →":"View All →",
+    "रिकॉर्ड देखने, खोजने या बदलने के लिए Records टैब खोलें।":"Open Records to view, search or edit transactions.",
+    "＋ नया रिकॉर्ड जोड़ें":"+ Add New Record",
+    "− फॉर्म बंद करें":"− Close Form",
+    "नया रिकॉर्ड":"New Record",
+    "रिकॉर्ड का प्रकार":"Transaction Type",
+    "खर्च":"Expense",
+    "कमाई":"Income",
+    "उधार दिया":"Money Lent",
+    "उधार लिया":"Money Borrowed",
+    "उधार वापसी":"Repayment",
+    "राशि (₹)":"Amount (₹)",
+    "राशि":"Amount",
+    "तारीख":"Date",
+    "व्यक्ति का नाम":"Person's Name",
+    "किससे या किसको":"Who was it with?",
+    "वापसी का प्रकार":"Repayment Type",
+    "मैंने उधार चुकाया":"I repaid a loan",
+    "मुझे उधार वापस मिला":"I received a repayment",
+    "नोट (वैकल्पिक)":"Note (optional)",
+    "रिकॉर्ड के बारे में लिखें":"Add a note",
+    "रिकॉर्ड सेव करें":"Save Record",
+    "Edit रद्द करें":"Cancel Edit",
+    "आपके रिकॉर्ड":"Your Records",
+    "नाम, नोट या Category":"Name, note or category",
+    "रिकॉर्ड खोजें...":"Search records...",
+    "प्रकार":"Type",
+    "सभी रिकॉर्ड":"All Records",
+    "शुरू की तारीख":"From Date",
+    "अंतिम तारीख":"To Date",
+    "फ़िल्टर साफ़ करें":"Clear Filters",
+    "रिकॉर्ड सूची":"Record List",
+    "रिपोर्ट का समय":"Report Period",
+    "मासिक रिपोर्ट":"Monthly Report",
+    "वार्षिक रिपोर्ट":"Yearly Report",
+    "साल":"Year",
+    "रिपोर्ट दिखाएँ":"Show Report",
+    "Export और Backup":"Export & Backup",
+    "चुने गए महीने और फ़िल्टर के रिकॉर्ड एक्सपोर्ट होंगे।":"Records matching the selected month and filters will be exported.",
+    "अपने डेटा का नियमित Backup रखें।":"Back up your data regularly.",
+    "रिकॉर्ड लोड हो रहे हैं...":"Loading records...",
+    "बजट सेट करें।":"Set a budget for this month.",
+    "Dashboard":"Dashboard",
+    "Home":"Home",
+    "Records":"Records",
+    "Add":"Add",
+    "Reports":"Reports",
+    "English":"हिन्दी",
+    "हिन्दी":"English"
+  };
+
+  function lang() {
+    return localStorage.getItem("expenzo_language_v1") || "hi";
+  }
+
+  // Keep the original Hindi text so switching back is reliable.
+  const originals = new WeakMap();
+  function translateTree() {
+    const language = lang();
+    document.documentElement.lang = language;
+    const walker = document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(node => {
+      const parent = node.parentElement;
+      if(!parent || ["SCRIPT","STYLE"].includes(parent.tagName)) return;
+      if(!originals.has(node)) originals.set(node,node.nodeValue);
+      const source = originals.get(node);
+      const trimmed = source.trim();
+      if(!trimmed) return;
+      if(language === "hi") {
+        node.nodeValue = source;
+      } else if(en[trimmed]) {
+        node.nodeValue = source.replace(trimmed,en[trimmed]);
+      }
+    });
+
+    const placeholders = {
+      email:["आपका email","Your email"],
+      password:["कम से कम 6 अक्षर","At least 6 characters"],
+      amount:["0.00","0.00"],
+      note:["रिकॉर्ड के बारे में लिखें","Add a note"],
+      person:["किससे या किसको","Who was it with?"],
+      recordSearch:["रिकॉर्ड खोजें...","Search records..."],
+      budgetInput:["जैसे 10000","e.g. 10000"]
+    };
+    Object.entries(placeholders).forEach(([id,v]) => {
+      const el = $(id);
+      if(el) el.placeholder = v[language === "en" ? 1 : 0];
+    });
+    const button = $("languageToggle");
+    if(button) button.textContent = language === "hi" ? "English" : "हिन्दी";
+    const formButton = $("toggleEntryForm");
+    if(formButton && form && !form.classList.contains("hidden")) {
+      formButton.textContent = language === "en" ? "− Close Form" : "− फॉर्म बंद करें";
+    }
+  }
+
+  // app.js changes the saved language when the language button is clicked.
+  $("languageToggle")?.addEventListener("click",() => {
+    setTimeout(translateTree,30);
+  });
+
+  // Observe UI updates made by app.js, such as refreshed records and totals.
+  const observer = new MutationObserver(() => {
+    if(lang() === "en") translateTree();
+    updateNav();
+  });
+  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  translateTree();
+  updateNav();
 })();
 </script>
 </body>
