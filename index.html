@@ -1,73 +1,205 @@
+
 <!doctype html>
 <html lang="hi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#123b2a">
-  <meta name="description" content="Expenzo — Income, Expenses, बजट, बचत और उधार का रिकॉर्ड।">
+  <meta name="description" content="Expenzo — Income, Expenses, बजट और बचत का रिकॉर्ड।">
   <title>Expenzo</title>
+
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 </head>
+
 <body>
   <header class="topbar">
-    <div><div class="brand">Expenzo<span class="brand-dot">.</span></div><small>Your Money, Your Control</small></div>
+    <div>
+      <div class="brand">Expenzo<span class="brand-dot">.</span></div>
+      <small>Your Money, Your Control</small>
+    </div>
     <button id="logoutBtn" class="ghost hidden">लॉग आउट</button>
   </header>
+
   <main class="container">
     <section id="authPanel" class="panel auth-panel">
       <h1>अपना हिसाब शुरू करें</h1>
-      <p class="muted">ईमेल से अकाउंट बनाएं या लॉग इन करें। डेटा आपके निजी अकाउंट में क्लाउड पर सेव होगा।</p>
-      <label>ईमेल<input id="email" type="email" autocomplete="email" placeholder="you@example.com"></label>
-      <label>पासवर्ड<input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="कम से कम 6 अक्षर"></label>
-      <div class="actions"><button id="loginBtn">लॉग इन</button><button id="signupBtn" class="secondary">नया अकाउंट</button></div>
-      <button id="offlineBtn" class="secondary wide" type="button">बिना अकाउंट के ऑफलाइन इस्तेमाल करें</button>
-      <p class="muted">ऑफलाइन रिकॉर्ड पहले इस फोन में सेव होंगे। बाद में अकाउंट बनाकर क्लाउड में सिंक कर सकते हैं।</p>
+      <p class="muted">
+        ईमेल से अकाउंट बनाएं या Google से लॉगिन करें।
+        आपका क्लाउड डेटा आपके अकाउंट से जुड़ा रहेगा।
+      </p>
+
+      <label>
+        ईमेल
+        <input id="email" type="email" autocomplete="email"
+               placeholder="you@example.com">
+      </label>
+
+      <label>
+        पासवर्ड
+        <input id="password" type="password"
+               autocomplete="current-password" minlength="6"
+               placeholder="कम से कम 6 अक्षर">
+      </label>
+
+      <div class="actions">
+        <button id="loginBtn" type="button">लॉग इन</button>
+        <button id="signupBtn" class="secondary" type="button">
+          नया अकाउंट
+        </button>
+      </div>
+
+      <button id="googleLoginBtn" class="secondary wide" type="button">
+        <strong aria-hidden="true">G</strong>
+        Google से लॉगिन करें
+      </button>
+
+      <button id="offlineBtn" class="secondary wide" type="button">
+        बिना अकाउंट के ऑफलाइन इस्तेमाल करें
+      </button>
+
+      <p class="muted">
+        ऑफलाइन रिकॉर्ड पहले इस फोन में सेव होंगे।
+        बाद में अकाउंट बनाकर क्लाउड सिंक कर सकते हैं।
+      </p>
+
       <p id="authMsg" class="message" role="status"></p>
     </section>
 
     <section id="appPanel" class="hidden">
-      <div class="welcome"><div><h1>Dashboard</h1><p id="userEmail" class="muted"></p></div>
-        <label class="month-label">महीना<input id="monthFilter" type="month"></label>
+      <div class="welcome">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="userEmail" class="muted"></p>
+        </div>
+        <label class="month-label">
+          महीना
+          <input id="monthFilter" type="month">
+        </label>
       </div>
-      <div id="syncStatus" class="sync-status" role="status">ऑफलाइन रिकॉर्ड इस डिवाइस में सेव होंगे।</div>
+
+      <div id="syncStatus" class="sync-status" role="status">
+        ऑफलाइन रिकॉर्ड इस डिवाइस में सेव होंगे।
+      </div>
+
       <div class="summary-grid">
-        <article class="summary income"><small>Income</small><strong id="totalIncome">₹0</strong></article>
-        <article class="summary expense"><small>Expenses</small><strong id="totalExpense">₹0</strong></article>
-        <article class="summary balance"><small>Balance</small><strong id="balance">₹0</strong></article>
+        <article class="summary income">
+          <small>Income</small>
+          <strong id="totalIncome">₹0</strong>
+        </article>
+        <article class="summary expense">
+          <small>Expenses</small>
+          <strong id="totalExpense">₹0</strong>
+        </article>
+        <article class="summary balance">
+          <small>Balance</small>
+          <strong id="balance">₹0</strong>
+        </article>
       </div>
+
       <section class="panel">
         <h2>मासिक बजट</h2>
-        <div class="budget-row"><label class="grow">बजट (₹)<input id="budgetInput" type="number" min="0" step="1" placeholder="जैसे 10000"></label><button id="saveBudgetBtn">बजट सेव</button></div>
-        <div class="progress"><div id="budgetProgress"></div></div>
+        <div class="budget-row">
+          <label class="grow">
+            बजट (₹)
+            <input id="budgetInput" type="number" min="0" step="1"
+                   placeholder="जैसे 10000">
+          </label>
+          <button id="saveBudgetBtn" type="button">बजट सेव</button>
+        </div>
+        <div class="progress">
+          <div id="budgetProgress"></div>
+        </div>
         <p id="budgetText" class="muted">इस महीने का बजट सेट करें।</p>
       </section>
+
       <section class="panel">
         <h2>नई एंट्री</h2>
         <form id="entryForm">
           <div class="form-grid">
-            <label>रिकॉर्ड का प्रकार<select id="type" required><option value="expense">Expenses</option><option value="income">Income</option><option value="lend">उधार दिया</option><option value="borrow">उधार लिया</option><option value="repay">उधार वापसी/भुगतान</option></select></label>
-            <label>राशि (₹)<input id="amount" type="number" min="0.01" step="0.01" required placeholder="500"></label>
-            <label>कैटेगरी<select id="category"><option>खाना</option><option>यात्रा</option><option>घर</option><option>बिल</option><option>स्वास्थ्य</option><option>शिक्षा</option><option>वेतन</option><option>व्यवसाय</option><option>उधार</option><option>अन्य</option></select></label>
-            <label>तारीख<input id="entryDate" type="date" required></label>
-            <label class="full">व्यक्ति / नोट (वैकल्पिक)<input id="note" maxlength="160" placeholder="जैसे रमेश — ₹1000 उधार"></label>
+            <label>
+              रिकॉर्ड का प्रकार
+              <select id="type" required>
+                <option value="expense">Expenses</option>
+                <option value="income">Income</option>
+                <option value="lend">उधार दिया</option>
+                <option value="borrow">उधार लिया</option>
+                <option value="repay">उधार वापसी/भुगतान</option>
+              </select>
+            </label>
+
+            <label>
+              राशि (₹)
+              <input id="amount" type="number" min="0.01" step="0.01"
+                     required placeholder="500">
+            </label>
+
+            <label>
+              कैटेगरी
+              <select id="category">
+                <option>खाना</option>
+                <option>यात्रा</option>
+                <option>घर</option>
+                <option>बिल</option>
+                <option>स्वास्थ्य</option>
+                <option>शिक्षा</option>
+                <option>वेतन</option>
+                <option>व्यवसाय</option>
+                <option>उधार</option>
+                <option>अन्य</option>
+              </select>
+            </label>
+
+            <label>
+              तारीख
+              <input id="entryDate" type="date" required>
+            </label>
+
+            <label class="full">
+              व्यक्ति / नोट (वैकल्पिक)
+              <input id="note" maxlength="160"
+                     placeholder="जैसे रमेश — ₹1000 उधार">
+            </label>
           </div>
+
           <button type="submit" class="wide">रिकॉर्ड सेव करें</button>
           <p id="entryMsg" class="message" role="status"></p>
         </form>
       </section>
+
       <section class="panel">
-        <div class="section-heading"><h2>इस महीने के रिकॉर्ड</h2><span id="recordCount" class="muted"></span></div>
-        <div class="export-row"><button id="exportExcel" class="secondary">Excel डाउनलोड</button><button id="exportPdf" class="secondary">PDF डाउनलोड</button></div>
-        <div id="records" class="records"><p class="muted">रिकॉर्ड लोड हो रहे हैं…</p></div>
+        <div class="section-heading">
+          <h2>इस महीने के रिकॉर्ड</h2>
+          <span id="recordCount" class="muted"></span>
+        </div>
+
+        <div class="export-row">
+          <button id="exportExcel" class="secondary" type="button">
+            Excel डाउनलोड
+          </button>
+          <button id="exportPdf" class="secondary" type="button">
+            PDF डाउनलोड
+          </button>
+        </div>
+
+        <div id="records" class="records">
+          <p class="muted">रिकॉर्ड लोड हो रहे हैं…</p>
+        </div>
       </section>
-      <p class="footnote">सुरक्षा: अपना पासवर्ड किसी से साझा न करें। अपने अकाउंट का डेटा केवल आप देख सकते हैं, यदि Supabase SQL/RLS सेटअप सही किया गया हो।</p>
+
+      <p class="footnote">
+        अपना पासवर्ड किसी से साझा न करें।
+        डेटा सुरक्षा के लिए Supabase RLS सही तरीके से सेट होना चाहिए।
+      </p>
     </section>
   </main>
+
   <div id="toast" class="toast" role="status"></div>
+
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
