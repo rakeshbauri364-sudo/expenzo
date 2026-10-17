@@ -13,7 +13,6 @@ on:
       - 'config.js'
       - 'manifest.json'
       - 'scripts/**'
-      - 'www/**'
       - 'package.json'
       - 'package-lock.json'
       - 'capacitor.config.json'
@@ -38,6 +37,9 @@ jobs:
       - name: Copy web files
         run: npm run copy-web
 
+      - name: Verify web assets
+        run: test -f www/index.html
+
       - name: Add Android platform
         run: npx cap add android
 
@@ -52,6 +54,11 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
 
       - name: Build debug APK
         working-directory: android
