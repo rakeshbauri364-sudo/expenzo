@@ -1,205 +1,680 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#123b2a">
-  <meta name="description" content="Expenzo — Income, Expenses, बजट और बचत का रिकॉर्ड।">
-  <title>Expenzo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#087a49">
+  <meta name="description" content="Expenzo - Manage income, expenses, budgets and personal lending in one place.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Expenzo — Smart Expense Manager</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --ex-green: #087a49;
+      --ex-green-dark: #075c38;
+      --ex-bg: #f4f8f5;
+      --ex-card: #ffffff;
+      --ex-text: #17251d;
+      --ex-muted: #68776e;
+      --ex-border: #e0e9e3;
+      --ex-red: #c0392b;
+      --ex-radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--ex-bg);
+      color: var(--ex-text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .ex-app {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
+
+    .hidden { display: none !important; }
+
+    .ex-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ex-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ex-logo {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: var(--ex-green);
+      color: white;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .ex-brand h1 { margin: 0; font-size: 24px; }
+    .ex-brand p { margin: 3px 0 0; color: var(--ex-muted); font-size: 12px; }
+
+    .ex-button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 15px;
+      font-weight: 650;
+      background: var(--ex-green);
+      color: white;
+    }
+
+    .ex-button:hover { background: var(--ex-green-dark); }
+    .ex-button.secondary {
+      background: #e8f4ec;
+      color: var(--ex-green-dark);
+    }
+
+    .ex-button.danger {
+      background: #fff0ee;
+      color: var(--ex-red);
+    }
+
+    .ex-button.outline {
+      background: transparent;
+      border: 1px solid var(--ex-border);
+      color: var(--ex-text);
+    }
+
+    .ex-card {
+      background: var(--ex-card);
+      border: 1px solid var(--ex-border);
+      border-radius: var(--ex-radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 5px 20px rgba(16, 55, 32, 0.035);
+      min-width: 0;
+    }
+
+    .ex-card h2 {
+      margin: 0 0 14px;
+      font-size: 17px;
+    }
+
+    .ex-muted { color: var(--ex-muted); }
+    .ex-small { font-size: 12px; }
+    .ex-grid { display: grid; gap: 14px; }
+    .ex-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ex-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .ex-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 13px;
+      min-width: 0;
+    }
+
+    .ex-field label { font-size: 13px; font-weight: 650; }
+
+    .ex-field input,
+    .ex-field select,
+    .ex-field textarea,
+    .ex-control {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--ex-border);
+      border-radius: 11px;
+      background: white;
+      color: var(--ex-text);
+      outline: none;
+    }
+
+    .ex-field input:focus,
+    .ex-field select:focus,
+    .ex-field textarea:focus,
+    .ex-control:focus {
+      border-color: var(--ex-green);
+      box-shadow: 0 0 0 3px rgba(8, 122, 73, .1);
+    }
+
+    .ex-field textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .ex-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+    .ex-actions > * { flex: 1 1 auto; }
+
+    .ex-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .ex-stat {
+      background: white;
+      border: 1px solid var(--ex-border);
+      border-radius: 16px;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .ex-stat-label { font-size: 12px; color: var(--ex-muted); }
+    .ex-stat-value {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(16px, 3.8vw, 24px);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .ex-positive { color: var(--ex-green); }
+    .ex-negative { color: var(--ex-red); }
+
+    .ex-section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 13px;
+    }
+
+    .ex-section-heading h2 { margin: 0; }
+
+    .ex-records { display: grid; gap: 10px; }
+
+    .record {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--ex-border);
+      border-radius: 13px;
+      padding: 13px;
+      background: white;
+    }
+
+    .record-main { flex: 1; min-width: 0; }
+    .record-title { font-weight: 750; overflow-wrap: anywhere; }
+    .record-sub {
+      margin-top: 5px;
+      color: var(--ex-muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .record-right { text-align: right; flex-shrink: 0; }
+    .record-right button {
+      margin-top: 8px;
+      margin-left: 4px;
+      border: 0;
+      border-radius: 8px;
+      padding: 7px 9px;
+    }
+
+    .amount-income { color: var(--ex-green); }
+    .amount-expense { color: var(--ex-red); }
+    .amount-other { color: #526dce; }
+
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 20px;
+      background: #e7f6ed;
+      color: var(--ex-green-dark);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .sync-status.offline {
+      background: #fff5dd;
+      color: #855d00;
+    }
+
+    .ex-progress-track {
+      width: 100%;
+      height: 10px;
+      margin: 12px 0;
+      border-radius: 20px;
+      background: #e9efe9;
+      overflow: hidden;
+    }
+
+    #budgetProgress {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      transition: width .25s ease;
+    }
+
+    #budgetText { font-size: 13px; line-height: 1.7; }
+
+    #reportSummary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .report-card {
+      border: 1px solid var(--ex-border);
+      background: #f9fcfa;
+      border-radius: 12px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .report-card small {
+      display: block;
+      color: var(--ex-muted);
+      margin-bottom: 6px;
+    }
+
+    .report-card strong { overflow-wrap: anywhere; }
+
+    .ex-message {
+      min-height: 18px;
+      font-size: 13px;
+      color: var(--ex-green);
+      overflow-wrap: anywhere;
+    }
+
+    .ex-message.error { color: var(--ex-red); }
+
+    .ex-auth {
+      max-width: 440px;
+      margin: 30px auto;
+    }
+
+    .ex-footer {
+      text-align: center;
+      color: var(--ex-muted);
+      font-size: 12px;
+      padding: 18px 0;
+    }
+
+    #toast {
+      position: fixed;
+      z-index: 9999;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: calc(100% - 32px);
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #183d2b;
+      color: white;
+      box-shadow: 0 6px 25px #0002;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      overflow-wrap: anywhere;
+    }
+
+    #toast.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .ex-app { padding: 12px; }
+      .ex-header { align-items: flex-start; }
+      .ex-brand h1 { font-size: 21px; }
+      .ex-grid-3, .ex-stats { grid-template-columns: 1fr; }
+      .ex-grid-2 { grid-template-columns: 1fr; }
+      .ex-card { padding: 14px; }
+      .ex-stat { padding: 13px; }
+      .record { padding: 11px; }
+      .record-right button { padding: 7px; }
+    }
+  </style>
 </head>
 
 <body>
-  <header class="topbar">
-    <div>
-      <div class="brand">Expenzo<span class="brand-dot">.</span></div>
-      <small>Your Money, Your Control</small>
-    </div>
-    <button id="logoutBtn" class="ghost hidden">लॉग आउट</button>
-  </header>
-
-  <main class="container">
-    <section id="authPanel" class="panel auth-panel">
-      <h1>अपना हिसाब शुरू करें</h1>
-      <p class="muted">
-        ईमेल से अकाउंट बनाएं या Google से लॉगिन करें।
-        आपका क्लाउड डेटा आपके अकाउंट से जुड़ा रहेगा।
-      </p>
-
-      <label>
-        ईमेल
-        <input id="email" type="email" autocomplete="email"
-               placeholder="you@example.com">
-      </label>
-
-      <label>
-        पासवर्ड
-        <input id="password" type="password"
-               autocomplete="current-password" minlength="6"
-               placeholder="कम से कम 6 अक्षर">
-      </label>
-
-      <div class="actions">
-        <button id="loginBtn" type="button">लॉग इन</button>
-        <button id="signupBtn" class="secondary" type="button">
-          नया अकाउंट
-        </button>
+  <main class="ex-app">
+    <header class="ex-header">
+      <div class="ex-brand">
+        <div class="ex-logo" aria-hidden="true">₹</div>
+        <div>
+          <h1>Expenzo</h1>
+          <p>Smart Expense Manager</p>
+        </div>
       </div>
 
-      <button id="googleLoginBtn" class="secondary wide" type="button">
-        <strong aria-hidden="true">G</strong>
-        Google से लॉगिन करें
-      </button>
+      <button type="button" id="languageToggle"
+        class="ex-button secondary">English</button>
+    </header>
 
-      <button id="offlineBtn" class="secondary wide" type="button">
-        बिना अकाउंट के ऑफलाइन इस्तेमाल करें
-      </button>
-
-      <p class="muted">
-        ऑफलाइन रिकॉर्ड पहले इस फोन में सेव होंगे।
-        बाद में अकाउंट बनाकर क्लाउड सिंक कर सकते हैं।
+    <!-- LOGIN / SIGNUP -->
+    <section id="authPanel" class="ex-card ex-auth">
+      <h2>अपने अकाउंट में लॉगिन करें</h2>
+      <p class="ex-muted ex-small">
+        अपने खर्च और बजट को सुरक्षित तरीके से मैनेज करें।
       </p>
 
-      <p id="authMsg" class="message" role="status"></p>
+      <div class="ex-field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email"
+          placeholder="आपका email" required>
+      </div>
+
+      <div class="ex-field">
+        <label for="password">Password</label>
+        <input id="password" type="password"
+          autocomplete="current-password"
+          placeholder="कम से कम 6 अक्षर" required>
+      </div>
+
+      <div class="ex-actions">
+        <button type="button" id="loginBtn" class="ex-button">
+          Login
+        </button>
+        <button type="button" id="signupBtn"
+          class="ex-button secondary">Sign Up</button>
+      </div>
+
+      <p class="ex-muted ex-small" style="text-align:center">या</p>
+
+      <button type="button" id="googleLoginBtn"
+        class="ex-button outline" style="width:100%">
+        Continue with Google
+      </button>
+
+      <button type="button" id="offlineBtn"
+        class="ex-button secondary"
+        style="width:100%;margin-top:10px">
+        बिना Login के Offline इस्तेमाल करें
+      </button>
+
+      <p id="authMsg" class="ex-message" role="status"
+        aria-live="polite"></p>
     </section>
 
+    <!-- MAIN APPLICATION -->
     <section id="appPanel" class="hidden">
-      <div class="welcome">
+      <div class="ex-section-heading">
         <div>
-          <h1>Dashboard</h1>
-          <p id="userEmail" class="muted"></p>
+          <h2>Dashboard</h2>
+          <p id="userEmail" class="ex-muted ex-small"></p>
         </div>
-        <label class="month-label">
-          महीना
+
+        <div class="ex-actions" style="flex:0 1 auto">
+          <span id="syncStatus" class="sync-status offline">
+            Offline mode
+          </span>
+          <button type="button" id="logoutBtn"
+            class="ex-button outline hidden">Logout</button>
+        </div>
+      </div>
+
+      <!-- PERIOD -->
+      <section class="ex-card">
+        <div class="ex-field" style="margin-bottom:0">
+          <label for="monthFilter">महीना चुनें</label>
           <input id="monthFilter" type="month">
-        </label>
-      </div>
-
-      <div id="syncStatus" class="sync-status" role="status">
-        ऑफलाइन रिकॉर्ड इस डिवाइस में सेव होंगे।
-      </div>
-
-      <div class="summary-grid">
-        <article class="summary income">
-          <small>Income</small>
-          <strong id="totalIncome">₹0</strong>
-        </article>
-        <article class="summary expense">
-          <small>Expenses</small>
-          <strong id="totalExpense">₹0</strong>
-        </article>
-        <article class="summary balance">
-          <small>Balance</small>
-          <strong id="balance">₹0</strong>
-        </article>
-      </div>
-
-      <section class="panel">
-        <h2>मासिक बजट</h2>
-        <div class="budget-row">
-          <label class="grow">
-            बजट (₹)
-            <input id="budgetInput" type="number" min="0" step="1"
-                   placeholder="जैसे 10000">
-          </label>
-          <button id="saveBudgetBtn" type="button">बजट सेव</button>
         </div>
-        <div class="progress">
-          <div id="budgetProgress"></div>
-        </div>
-        <p id="budgetText" class="muted">इस महीने का बजट सेट करें।</p>
       </section>
 
-      <section class="panel">
-        <h2>नई एंट्री</h2>
+      <!-- SUMMARY -->
+      <section class="ex-stats" aria-label="Monthly summary">
+        <div class="ex-stat">
+          <span class="ex-stat-label">कुल कमाई</span>
+          <strong id="totalIncome" class="ex-stat-value ex-positive">
+            ₹0
+          </strong>
+        </div>
+
+        <div class="ex-stat">
+          <span class="ex-stat-label">कुल खर्च</span>
+          <strong id="totalExpense" class="ex-stat-value ex-negative">
+            ₹0
+          </strong>
+        </div>
+
+        <div class="ex-stat">
+          <span class="ex-stat-label">नेट कैश बदलाव</span>
+          <strong id="balance" class="ex-stat-value">₹0</strong>
+        </div>
+      </section>
+
+      <!-- BUDGET -->
+      <section class="ex-card" style="margin-top:16px">
+        <h2>मासिक बजट</h2>
+
+        <div class="ex-field">
+          <label for="budgetInput">इस महीने का बजट (₹)</label>
+          <input id="budgetInput" type="number"
+            min="0" step="0.01" inputmode="decimal"
+            placeholder="जैसे 10000">
+        </div>
+
+        <button type="button" id="saveBudgetBtn"
+          class="ex-button">बजट सेव करें</button>
+
+        <div class="ex-progress-track" aria-label="Budget progress">
+          <div id="budgetProgress"></div>
+        </div>
+
+        <p id="budgetText" class="ex-muted">बजट सेट करें।</p>
+      </section>
+
+      <!-- ADD / EDIT TRANSACTION -->
+      <section class="ex-card">
+        <h2>नया रिकॉर्ड जोड़ें</h2>
+
         <form id="entryForm">
-          <div class="form-grid">
-            <label>
-              रिकॉर्ड का प्रकार
+          <div class="ex-grid ex-grid-2">
+            <div class="ex-field">
+              <label for="type">रिकॉर्ड का प्रकार</label>
               <select id="type" required>
-                <option value="expense">Expenses</option>
-                <option value="income">Income</option>
+                <option value="expense">खर्च</option>
+                <option value="income">कमाई</option>
                 <option value="lend">उधार दिया</option>
                 <option value="borrow">उधार लिया</option>
-                <option value="repay">उधार वापसी/भुगतान</option>
+                <option value="repay">उधार वापसी</option>
               </select>
-            </label>
+            </div>
 
-            <label>
-              राशि (₹)
-              <input id="amount" type="number" min="0.01" step="0.01"
-                     required placeholder="500">
-            </label>
-
-            <label>
-              कैटेगरी
-              <select id="category">
-                <option>खाना</option>
-                <option>यात्रा</option>
-                <option>घर</option>
-                <option>बिल</option>
-                <option>स्वास्थ्य</option>
-                <option>शिक्षा</option>
-                <option>वेतन</option>
-                <option>व्यवसाय</option>
-                <option>उधार</option>
-                <option>अन्य</option>
-              </select>
-            </label>
-
-            <label>
-              तारीख
-              <input id="entryDate" type="date" required>
-            </label>
-
-            <label class="full">
-              व्यक्ति / नोट (वैकल्पिक)
-              <input id="note" maxlength="160"
-                     placeholder="जैसे रमेश — ₹1000 उधार">
-            </label>
+            <div class="ex-field">
+              <label for="amount">राशि (₹)</label>
+              <input id="amount" type="number"
+                min="0.01" step="0.01" inputmode="decimal"
+                placeholder="0.00" required>
+            </div>
           </div>
 
-          <button type="submit" class="wide">रिकॉर्ड सेव करें</button>
-          <p id="entryMsg" class="message" role="status"></p>
+          <div class="ex-grid ex-grid-2">
+            <div class="ex-field">
+              <label for="category">Category</label>
+              <select id="category" required>
+                <option value="राशन">राशन</option>
+                <option value="घर">घर</option>
+                <option value="यात्रा">यात्रा</option>
+                <option value="पेट्रोल">पेट्रोल</option>
+                <option value="शिक्षा">शिक्षा</option>
+                <option value="मेडिकल">मेडिकल</option>
+                <option value="सैलरी">सैलरी</option>
+                <option value="व्यापार">व्यापार</option>
+                <option value="अन्य">अन्य</option>
+              </select>
+            </div>
+
+            <div class="ex-field">
+              <label for="entryDate">तारीख</label>
+              <input id="entryDate" type="date" required>
+            </div>
+          </div>
+
+          <div id="personField" class="ex-field hidden">
+            <label for="person">व्यक्ति का नाम</label>
+            <input id="person" type="text"
+              maxlength="100" placeholder="किससे या किसको">
+          </div>
+
+          <div id="repayDirectionField" class="ex-field hidden">
+            <label for="repayDirection">वापसी का प्रकार</label>
+            <select id="repayDirection">
+              <option value="paid">मैंने उधार चुकाया</option>
+              <option value="received">मुझे उधार वापस मिला</option>
+            </select>
+          </div>
+
+          <div class="ex-field">
+            <label for="note">नोट (वैकल्पिक)</label>
+            <textarea id="note" maxlength="1000"
+              placeholder="रिकॉर्ड के बारे में लिखें"></textarea>
+          </div>
+
+          <div class="ex-actions">
+            <button type="submit" class="ex-button">
+              रिकॉर्ड सेव करें
+            </button>
+            <button type="button" id="cancelEdit"
+              class="ex-button secondary hidden">
+              Edit रद्द करें
+            </button>
+          </div>
+
+          <p id="entryMsg" class="ex-message"
+            role="status" aria-live="polite"></p>
         </form>
       </section>
 
-      <section class="panel">
-        <div class="section-heading">
-          <h2>इस महीने के रिकॉर्ड</h2>
-          <span id="recordCount" class="muted"></span>
+      <!-- SEARCH / FILTER -->
+      <section class="ex-card">
+        <div class="ex-section-heading">
+          <h2>रिकॉर्ड खोजें</h2>
+          <span id="recordCount" class="ex-muted ex-small">
+            0 रिकॉर्ड
+          </span>
         </div>
 
-        <div class="export-row">
-          <button id="exportExcel" class="secondary" type="button">
-            Excel डाउनलोड
-          </button>
-          <button id="exportPdf" class="secondary" type="button">
-            PDF डाउनलोड
-          </button>
+        <div class="ex-field">
+          <label for="recordSearch">नाम, नोट या Category</label>
+          <input id="recordSearch" class="ex-control"
+            type="search" placeholder="खोजें...">
         </div>
 
-        <div id="records" class="records">
-          <p class="muted">रिकॉर्ड लोड हो रहे हैं…</p>
+        <div class="ex-grid ex-grid-2">
+          <div class="ex-field">
+            <label for="recordTypeFilter">रिकॉर्ड का प्रकार</label>
+            <select id="recordTypeFilter">
+              <option value="all">सभी रिकॉर्ड</option>
+              <option value="income">कमाई</option>
+              <option value="expense">खर्च</option>
+              <option value="lend">उधार दिया</option>
+              <option value="borrow">उधार लिया</option>
+              <option value="repay">उधार वापसी</option>
+            </select>
+          </div>
+
+          <div class="ex-field">
+            <label for="filterFrom">शुरू की तारीख</label>
+            <input id="filterFrom" type="date">
+          </div>
+        </div>
+
+        <div class="ex-field">
+          <label for="filterTo">अंतिम तारीख</label>
+          <input id="filterTo" type="date">
+        </div>
+
+        <button type="button" class="ex-button outline"
+          onclick="document.getElementById('recordSearch').value='';document.getElementById('recordTypeFilter').value='all';document.getElementById('filterFrom').value='';document.getElementById('filterTo').value='';document.getElementById('recordSearch').dispatchEvent(new Event('input'))">
+          फ़िल्टर साफ़ करें
+        </button>
+      </section>
+
+      <!-- RECORD LIST -->
+      <section class="ex-card">
+        <div class="ex-section-heading">
+          <h2>आपके रिकॉर्ड</h2>
+        </div>
+
+        <div id="records" class="ex-records">
+          <p class="ex-muted">रिकॉर्ड लोड हो रहे हैं...</p>
         </div>
       </section>
 
-      <p class="footnote">
-        अपना पासवर्ड किसी से साझा न करें।
-        डेटा सुरक्षा के लिए Supabase RLS सही तरीके से सेट होना चाहिए।
-      </p>
+      <!-- REPORTS -->
+      <section class="ex-card">
+        <h2>Reports</h2>
+
+        <div class="ex-grid ex-grid-2">
+          <div class="ex-field">
+            <label for="reportPeriod">रिपोर्ट का समय</label>
+            <select id="reportPeriod">
+              <option value="month">मासिक रिपोर्ट</option>
+              <option value="year">वार्षिक रिपोर्ट</option>
+            </select>
+          </div>
+
+          <div class="ex-field">
+            <label for="reportYear">साल</label>
+            <input id="reportYear" type="number"
+              min="2000" max="2100" step="1">
+          </div>
+        </div>
+
+        <button type="button" id="generateReport"
+          class="ex-button secondary">रिपोर्ट दिखाएँ</button>
+
+        <div id="reportSummary" style="margin-top:14px">
+        </div>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="ex-card">
+        <h2>Export और Backup</h2>
+        <p class="ex-muted ex-small">
+          चुने गए महीने और फिल्टर के रिकॉर्ड एक्सपोर्ट होंगे।
+        </p>
+
+        <div class="ex-actions">
+          <button type="button" id="exportExcel"
+            class="ex-button">Excel</button>
+          <button type="button" id="exportPdf"
+            class="ex-button secondary">PDF</button>
+          <button type="button" id="exportCsv"
+            class="ex-button outline">CSV</button>
+        </div>
+      </section>
     </section>
+
+    <footer class="ex-footer">
+      Expenzo · Your money, clearly managed.
+      <br>अपने डेटा का नियमित Backup रखें।
+    </footer>
   </main>
 
-  <div id="toast" class="toast" role="status"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf/dist/jspdf.umd.min.js"></script>
+
+  <!-- Your Supabase configuration must load before app.js -->
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
