@@ -4,6 +4,7 @@
 
   const $ = id => document.getElementById(id);
   const config = window.EXPENSEBOOK_CONFIG || {};
+
   const hasSupabase = Boolean(
     window.supabase &&
     config.SUPABASE_URL &&
@@ -20,8 +21,7 @@
   const KEYS = {
     tx: "expenzo_transactions_v1",
     budgets: "expenzo_budgets_v1",
-    lang: "expenzo_language_v1",
-    queue: "expenzo_sync_queue_v1"
+    lang: "expenzo_language_v1"
   };
 
   let mode = "offline";
@@ -29,7 +29,6 @@
   let rows = [];
   let editingId = null;
   let busy = false;
-  let syncing = false;
   let language = localStorage.getItem(KEYS.lang) || "hi";
 
   const words = {
@@ -44,7 +43,6 @@
       update: "रिकॉर्ड अपडेट करें",
       edit: "Edit",
       delete: "हटाएँ",
-      cancel: "Edit रद्द करें",
       noRecords: "कोई रिकॉर्ड नहीं मिला।",
       invalidAmount: "राशि 0 से अधिक होनी चाहिए।",
       saved: "रिकॉर्ड सेव हो गया।",
@@ -53,7 +51,6 @@
       confirmDelete: "क्या यह रिकॉर्ड हटाना है?",
       offline: "ऑफलाइन मोड",
       cloud: "क्लाउड से कनेक्ट है",
-      syncPending: "सिंक बाकी है",
       language: "English",
       budget: "बजट",
       spent: "खर्च",
@@ -75,7 +72,6 @@
       update: "Update Record",
       edit: "Edit",
       delete: "Delete",
-      cancel: "Cancel Edit",
       noRecords: "No records found.",
       invalidAmount: "Amount must be greater than zero.",
       saved: "Record saved.",
@@ -84,7 +80,6 @@
       confirmDelete: "Delete this record?",
       offline: "Offline mode",
       cloud: "Connected to cloud",
-      syncPending: "Sync pending",
       language: "हिन्दी",
       budget: "Budget",
       spent: "Spent",
@@ -97,15 +92,12 @@
     }
   };
 
-  const tr = key => words[language]?.[key] || words.en[key] || key;
+  const tr = key =>
+    words[language]?.[key] || words.en[key] || key;
 
   const today = () => {
     const d = new Date();
-    return [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, "0"),
-      String(d.getDate()).padStart(2, "0")
-    ].join("-");
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
 
   const currentMonth = () => today().slice(0, 7);
@@ -123,17 +115,16 @@
   const uid = () =>
     window.crypto?.randomUUID
       ? window.crypto.randomUUID()
-      : "local-" + Date.now() + "-" +
-        Math.random().toString(16).slice(2);
+      : `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   const escapeHTML = value =>
-    String(value ?? "").replace(/[&<>"']/g, char => ({
+    String(value ?? "").replace(/[&<>"']/g, c => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
-    })[char]);
+    })[c]);
 
   function getLocal(key, fallback) {
     try {
@@ -156,13 +147,13 @@
     setLocal(KEYS.tx, data);
   }
 
-  function toast(text) {
+  function toast(message) {
     const el = $("toast");
     if (!el) {
-      alert(text);
+      alert(message);
       return;
     }
-    el.textContent = text;
+    el.textContent = message;
     el.classList.add("show");
     clearTimeout(toast.timer);
     toast.timer = setTimeout(
@@ -171,18 +162,18 @@
     );
   }
 
-  function setMessage(id, text, error = false) {
+  function setMessage(id, message, error = false) {
     const el = $(id);
     if (!el) return;
-    el.textContent = text || "";
+    el.textContent = message || "";
     el.classList.toggle("error", error);
   }
 
-  function setSync(text, state = "") {
+  function setSync(message, state = "") {
     const el = $("syncStatus");
     if (!el) return;
-    el.textContent = text;
-    el.className = "sync-status " + state;
+    el.textContent = message;
+    el.className = `sync-status ${state}`;
   }
 
   function showApp(show, label = "") {
@@ -204,96 +195,102 @@
 
   function visibleRows() {
     const query = ($("recordSearch")?.value || "")
-      .trim()
-      .toLowerCase();
+      .trim().toLowerCase();
 
     const type = $("recordTypeFilter")?.value || "all";
     const from = $("filterFrom")?.value || "";
     const to = $("filterTo")?.value || "";
 
     return monthRows().filter(r => {
-      const text = [
-        r.category, r.note, r.person, r.entry_date, r.type
+      const haystack = [
+        r.category,
+        r.note,
+        r.person,
+        r.entry_date,
+        r.type
       ].join(" ").toLowerCase();
 
       return (
         (type === "all" || r.type === type) &&
-        text.includes(query) &&
+        haystack.includes(query) &&
         (!from || r.entry_date >= from) &&
         (!to || r.entry_date <= to)
       );
     });
   }
 
+  // व्यक्ति के नाम से उधार और वापसी का हिसाब।
   function calculate(list) {
     let income = 0;
     let expenses = 0;
     let cashChange = 0;
-    let lent = 0;
-    let borrowed = 0;
+    const balances = new Map();
 
     for (const r of list) {
       const amount = Number(r.amount) || 0;
+      const person = String(r.person || "")
+        .trim().toLocaleLowerCase() || "__unknown__";
 
-      switch (r.type) {
-        case "income":
-          income += amount;
+      if (r.type === "income") {
+        income += amount;
+        cashChange += amount;
+      } else if (r.type === "expense") {
+        expenses += amount;
+        cashChange -= amount;
+      } else if (r.type === "lend") {
+        cashChange -= amount;
+        balances.set(person, (balances.get(person) || 0) + amount);
+      } else if (r.type === "borrow") {
+        cashChange += amount;
+        balances.set(person, (balances.get(person) || 0) - amount);
+      } else if (r.type === "repay") {
+        if (r.repay_direction === "received") {
           cashChange += amount;
-          break;
-
-        case "expense":
-          expenses += amount;
+          balances.set(person, (balances.get(person) || 0) - amount);
+        } else {
           cashChange -= amount;
-          break;
-
-        case "lend":
-          cashChange -= amount;
-          lent += amount;
-          break;
-
-        case "borrow":
-          cashChange += amount;
-          borrowed += amount;
-          break;
-
-        case "repay":
-          if (r.repay_direction === "received") {
-            cashChange += amount;
-            lent -= amount;
-          } else {
-            cashChange -= amount;
-            borrowed -= amount;
-          }
-          break;
+          balances.set(person, (balances.get(person) || 0) + amount);
+        }
       }
     }
 
-    return {
-      income,
-      expenses,
-      cashChange,
-      lentDue: Math.max(0, lent),
-      borrowedDue: Math.max(0, borrowed)
-    };
+    let lentDue = 0;
+    let borrowedDue = 0;
+
+    for (const balance of balances.values()) {
+      if (balance > 0) lentDue += balance;
+      else borrowedDue += Math.abs(balance);
+    }
+
+    return { income, expenses, cashChange, lentDue, borrowedDue };
   }
 
   function render() {
-    const list = monthRows();
-    const sums = calculate(list);
+    const selectedMonth = monthRows();
 
-    if ($("totalIncome"))
-      $("totalIncome").textContent = money(sums.income);
+    if ($("totalIncome")) {
+      $("totalIncome").textContent = money(
+        selectedMonth
+          .filter(r => r.type === "income")
+          .reduce((sum, r) => sum + Number(r.amount || 0), 0)
+      );
+    }
 
-    if ($("totalExpense"))
-      $("totalExpense").textContent = money(sums.expenses);
+    if ($("totalExpense")) {
+      $("totalExpense").textContent = money(
+        selectedMonth
+          .filter(r => r.type === "expense")
+          .reduce((sum, r) => sum + Number(r.amount || 0), 0)
+      );
+    }
 
-    if ($("balance"))
-      $("balance").textContent = money(sums.cashChange);
+    if ($("balance")) {
+      $("balance").textContent = money(calculate(selectedMonth).cashChange);
+    }
 
     if ($("recordCount")) {
       $("recordCount").textContent =
-        visibleRows().length + " " +
-        (language === "hi" ? "रिकॉर्ड" : "records");
+        `${visibleRows().length} ${language === "hi" ? "रिकॉर्ड" : "records"}`;
     }
 
     const host = $("records");
@@ -301,57 +298,50 @@
     if (host) {
       const shown = visibleRows();
 
-      if (!shown.length) {
-        host.innerHTML =
-          `<p class="muted">${escapeHTML(tr("noRecords"))}</p>`;
-      } else {
-        host.innerHTML = shown.map(r => {
-          const positive =
-            r.type === "income" ||
-            r.type === "borrow" ||
-            (r.type === "repay" &&
-             r.repay_direction === "received");
+      host.innerHTML = shown.length
+        ? shown.map(r => {
+            const positive =
+              r.type === "income" ||
+              r.type === "borrow" ||
+              (r.type === "repay" && r.repay_direction === "received");
 
-          const amountClass =
-            r.type === "income" ? "amount-income" :
-            r.type === "expense" ? "amount-expense" :
-            "amount-other";
+            const amountClass =
+              r.type === "income" ? "amount-income" :
+              r.type === "expense" ? "amount-expense" :
+              "amount-other";
 
-          const note = [r.person, r.note]
-            .filter(Boolean)
-            .join(" · ");
+            const detail = [r.person, r.note]
+              .filter(Boolean)
+              .join(" · ");
 
-          return `
-            <article class="record">
-              <div class="record-main">
-                <div class="record-title">
-                  ${escapeHTML(r.category || tr("other"))}
-                  · ${escapeHTML(tr(r.type) || r.type)}
+            return `
+              <article class="record">
+                <div class="record-main">
+                  <div class="record-title">
+                    ${escapeHTML(r.category || tr("other"))}
+                    · ${escapeHTML(tr(r.type))}
+                  </div>
+                  <div class="record-sub">
+                    ${escapeHTML(r.entry_date || "")}
+                    ${detail ? " · " + escapeHTML(detail) : ""}
+                  </div>
                 </div>
-                <div class="record-sub">
-                  ${escapeHTML(r.entry_date || "")}
-                  ${note ? " · " + escapeHTML(note) : ""}
+                <div class="record-right">
+                  <strong class="${amountClass}">
+                    ${positive ? "+" : "−"}${money(r.amount)}
+                  </strong><br>
+                  <button type="button" class="secondary"
+                    data-edit="${escapeHTML(r.id)}">
+                    ${escapeHTML(tr("edit"))}
+                  </button>
+                  <button type="button" class="delete"
+                    data-delete="${escapeHTML(r.id)}">
+                    ${escapeHTML(tr("delete"))}
+                  </button>
                 </div>
-              </div>
-              <div class="record-right">
-                <strong class="${amountClass}">
-                  ${positive ? "+" : "−"}${money(r.amount)}
-                </strong>
-                <br>
-                <button type="button"
-                  class="secondary"
-                  data-edit="${escapeHTML(r.id)}">
-                  ${escapeHTML(tr("edit"))}
-                </button>
-                <button type="button"
-                  class="delete"
-                  data-delete="${escapeHTML(r.id)}">
-                  ${escapeHTML(tr("delete"))}
-                </button>
-              </div>
-            </article>`;
-        }).join("");
-      }
+              </article>`;
+          }).join("")
+        : `<p class="muted">${escapeHTML(tr("noRecords"))}</p>`;
     }
 
     renderBudget();
@@ -371,28 +361,25 @@
       input.value = budget || "";
     }
 
-    const spent = monthRows().reduce(
-      (sum, r) =>
-        sum + (r.type === "expense" ? Number(r.amount) || 0 : 0),
-      0
-    );
+    const spent = monthRows()
+      .filter(r => r.type === "expense")
+      .reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
     const percent = budget > 0
       ? Math.min(100, spent / budget * 100)
       : 0;
 
     if ($("budgetProgress")) {
-      $("budgetProgress").style.width = percent + "%";
+      $("budgetProgress").style.width = `${percent}%`;
       $("budgetProgress").style.background =
-        percent >= 100 ? "#c0392b" :
-        "linear-gradient(90deg,#19c37d,#087a49)";
+        percent >= 100
+          ? "#c0392b"
+          : "linear-gradient(90deg,#19c37d,#087a49)";
     }
 
     if ($("budgetText")) {
       $("budgetText").textContent = budget > 0
-        ? `${tr("budget")} ${money(budget)} · ` +
-          `${tr("spent")} ${money(spent)} · ` +
-          `${tr("remaining")} ${money(budget - spent)}`
+        ? `${tr("budget")} ${money(budget)} · ${tr("spent")} ${money(spent)} · ${tr("remaining")} ${money(budget - spent)}`
         : tr("budgetSet");
     }
   }
@@ -463,12 +450,14 @@
       budgets[month] = Number(data?.amount || 0);
       setLocal(KEYS.budgets, budgets);
 
-      if ($("budgetInput"))
+      if ($("budgetInput")) {
         $("budgetInput").value = data?.amount ?? "";
+      }
     } else {
       const budgets = getLocal(KEYS.budgets, {});
-      if ($("budgetInput"))
+      if ($("budgetInput")) {
         $("budgetInput").value = budgets[month] ?? "";
+      }
     }
 
     renderBudget();
@@ -487,25 +476,31 @@
 
     try {
       await refresh();
-      await syncQueue();
     } catch (error) {
       toast(tr("error") + error.message);
     }
   }
 
   async function login() {
-    if (busy || !sb) return;
+    if (busy) return;
+    if (!sb) {
+      setMessage("authMsg", "Supabase configuration नहीं मिली।", true);
+      return;
+    }
+
     busy = true;
 
     try {
       const email = $("email")?.value.trim();
       const password = $("password")?.value;
 
-      if (!email || !password)
+      if (!email || !password) {
         throw new Error("Email और password भरें।");
+      }
 
       const { data, error } = await sb.auth.signInWithPassword({
-        email, password
+        email,
+        password
       });
 
       if (error) throw error;
@@ -518,22 +513,27 @@
   }
 
   async function signup() {
-    if (busy || !sb) return;
+    if (busy) return;
+    if (!sb) {
+      setMessage("authMsg", "Supabase configuration नहीं मिली।", true);
+      return;
+    }
+
     busy = true;
 
     try {
       const email = $("email")?.value.trim();
       const password = $("password")?.value;
 
-      if (!email || !password)
+      if (!email || !password) {
         throw new Error("Email और password भरें।");
+      }
 
-      if (password.length < 6)
+      if (password.length < 6) {
         throw new Error("Password कम से कम 6 अक्षर का रखें।");
+      }
 
-      const { data, error } = await sb.auth.signUp({
-        email, password
-      });
+      const { data, error } = await sb.auth.signUp({ email, password });
 
       if (error) throw error;
 
@@ -542,7 +542,7 @@
       } else {
         setMessage(
           "authMsg",
-          "Account बन गया। Email verification पूरा करके login करें।"
+          "Account बन गया। Email verification के बाद login करें।"
         );
       }
     } catch (error) {
@@ -553,7 +553,10 @@
   }
 
   async function googleLogin() {
-    if (!sb) return toast("Supabase configuration उपलब्ध नहीं है।");
+    if (!sb) {
+      toast("Supabase configuration उपलब्ध नहीं है।");
+      return;
+    }
 
     const { error } = await sb.auth.signInWithOAuth({
       provider: "google",
@@ -572,14 +575,16 @@
     showApp(true, "Offline");
     setSync(tr("offline"), "offline");
     render();
-
     loadBudget().catch(() => {});
   }
 
   async function logout() {
     if (sb && mode === "online") {
       const { error } = await sb.auth.signOut();
-      if (error) return toast(tr("error") + error.message);
+      if (error) {
+        toast(tr("error") + error.message);
+        return;
+      }
     }
 
     mode = "offline";
@@ -592,11 +597,13 @@
     const type = $("type")?.value || "expense";
 
     $("repayDirectionField")?.classList.toggle(
-      "hidden", type !== "repay"
+      "hidden",
+      type !== "repay"
     );
 
     $("personField")?.classList.toggle(
-      "hidden", !["lend", "borrow", "repay"].includes(type)
+      "hidden",
+      !["lend", "borrow", "repay"].includes(type)
     );
   }
 
@@ -608,7 +615,12 @@
     }
 
     const type = $("type")?.value || "expense";
-    const record = {
+
+    if (!["income", "expense", "lend", "borrow", "repay"].includes(type)) {
+      throw new Error("Transaction type सही चुनें।");
+    }
+
+    return {
       id: editingId || uid(),
       type,
       amount,
@@ -618,12 +630,6 @@
       person: $("person")?.value.trim() || "",
       repay_direction: $("repayDirection")?.value || "paid"
     };
-
-    if (!["income", "expense", "lend", "borrow", "repay"].includes(type)) {
-      throw new Error("Transaction type सही चुनें।");
-    }
-
-    return record;
   }
 
   async function saveTransaction(event) {
@@ -634,6 +640,7 @@
 
     try {
       const record = getFormRecord();
+      const wasEditing = Boolean(editingId);
 
       if (mode === "online" && user) {
         const payload = {
@@ -647,16 +654,12 @@
           repay_direction: record.repay_direction
         };
 
-        let result;
-
-        if (editingId) {
-          result = await sb.from("transactions")
-            .update(payload)
-            .eq("id", editingId)
-            .eq("user_id", user.id);
-        } else {
-          result = await sb.from("transactions").insert(payload);
-        }
+        const result = wasEditing
+          ? await sb.from("transactions")
+              .update(payload)
+              .eq("id", editingId)
+              .eq("user_id", user.id)
+          : await sb.from("transactions").insert(payload);
 
         if (result.error) throw result.error;
       } else {
@@ -673,11 +676,13 @@
 
       $("entryForm")?.reset();
 
-      if ($("entryDate")) $("entryDate").value = today();
+      if ($("entryDate")) {
+        $("entryDate").value = today();
+      }
 
       clearEdit();
       await refresh();
-      toast(editingId ? tr("updated") : tr("saved"));
+      toast(wasEditing ? tr("updated") : tr("saved"));
       setMessage("entryMsg", "");
     } catch (error) {
       setMessage("entryMsg", error.message, true);
@@ -700,8 +705,7 @@
     if ($("person")) $("person").value = record.person || "";
 
     if ($("repayDirection")) {
-      $("repayDirection").value =
-        record.repay_direction || "paid";
+      $("repayDirection").value = record.repay_direction || "paid";
     }
 
     const submit = $("entryForm")?.querySelector('[type="submit"]');
@@ -755,33 +759,271 @@
     const month = $("monthFilter")?.value || currentMonth();
 
     if (!Number.isFinite(amount) || amount < 0) {
-      return toast("सही बजट राशि भरें।");
+      toast("सही बजट राशि भरें।");
+      return;
     }
 
     try {
       if (mode === "online" && user) {
-        const { data, error } = await sb
-          .from("monthly_budgets")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("month", month)
-          .maybeSingle();
+        const { error } = await sb.from("monthly_budgets").upsert(
+          {
+            user_id: user.id,
+            month,
+            amount
+          },
+          { onConflict: "user_id,month" }
+        );
 
         if (error) throw error;
-
-        const result = data
-          ? await sb.from("monthly_budgets")
-              .update({ amount })
-              .eq("id", data.id)
-              .eq("user_id", user.id)
-          : await sb.from("monthly_budgets").insert({
-              user_id: user.id,
-              month,
-              amount
-            });
-
-        if (result.error) throw result.error;
       }
 
       const budgets = getLocal(KEYS.budgets, {});
- 
+      budgets[month] = amount;
+      setLocal(KEYS.budgets, budgets);
+
+      renderBudget();
+      toast("Budget saved.");
+    } catch (error) {
+      toast(tr("error") + error.message);
+    }
+  }
+
+  function exportRows() {
+    const list = visibleRows();
+
+    if (!list.length) {
+      toast(tr("noExport"));
+      return [];
+    }
+
+    return list.map(r => ({
+      Date: r.entry_date,
+      Type: r.type,
+      Amount: Number(r.amount),
+      Category: r.category || "",
+      Person: r.person || "",
+      RepaymentDirection: r.repay_direction || "",
+      Note: r.note || ""
+    }));
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportCSV() {
+    const data = exportRows();
+    if (!data.length) return;
+
+    const headers = Object.keys(data[0]);
+
+    const csv = [
+      headers,
+      ...data.map(row => headers.map(header => row[header]))
+    ].map(row =>
+      row.map(value =>
+        `"${String(value ?? "").replace(/"/g, '""')}"`
+      ).join(",")
+    ).join("\r\n");
+
+    downloadBlob(
+      new Blob(["\uFEFF" + csv], {
+        type: "text/csv;charset=utf-8"
+      }),
+      `expenzo-${today()}.csv`
+    );
+  }
+
+  function exportExcel() {
+    const data = exportRows();
+    if (!data.length) return;
+
+    if (window.XLSX) {
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+      XLSX.writeFile(wb, `expenzo-${today()}.xlsx`);
+    } else {
+      exportCSV();
+    }
+  }
+
+  function exportPDF() {
+    const data = exportRows();
+    if (!data.length) return;
+
+    if (!window.jspdf?.jsPDF) {
+      toast("PDF library लोड नहीं हुई। CSV export इस्तेमाल करें।");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Expenzo - Transactions", 14, 16);
+    doc.setFontSize(9);
+
+    let y = 26;
+
+    data.forEach(r => {
+      const line =
+        `${r.Date} | ${r.Type} | INR ${r.Amount} | ${r.Category} | ${r.Person} | ${r.Note}`;
+
+      const lines = doc.splitTextToSize(line, 180);
+
+      if (y + lines.length * 5 > 280) {
+        doc.addPage();
+        y = 16;
+      }
+
+      doc.text(lines, 14, y);
+      y += lines.length * 5 + 2;
+    });
+
+    doc.save(`expenzo-${today()}.pdf`);
+  }
+
+  function setLanguage() {
+    language = language === "hi" ? "en" : "hi";
+    localStorage.setItem(KEYS.lang, language);
+
+    if ($("languageToggle")) {
+      $("languageToggle").textContent = tr("language");
+    }
+
+    const submit = $("entryForm")?.querySelector('[type="submit"]');
+    if (submit) {
+      submit.textContent = editingId ? tr("update") : tr("save");
+    }
+
+    render();
+  }
+
+  // Offline records remain on this device.
+  // Automatic offline-to-cloud sync is not implemented in this version.
+  async function syncQueue() {
+    if (mode === "online" && user) {
+      setSync(tr("cloud"));
+    }
+  }
+
+  function bindEvents() {
+    $("loginBtn")?.addEventListener("click", login);
+    $("signupBtn")?.addEventListener("click", signup);
+    $("googleLoginBtn")?.addEventListener("click", googleLogin);
+    $("offlineBtn")?.addEventListener("click", offlineMode);
+    $("logoutBtn")?.addEventListener("click", logout);
+
+    $("entryForm")?.addEventListener("submit", saveTransaction);
+    $("saveBudgetBtn")?.addEventListener("click", saveBudget);
+
+    $("cancelEdit")?.addEventListener("click", () => {
+      $("entryForm")?.reset();
+      clearEdit();
+      updateRepaymentFields();
+    });
+
+    $("type")?.addEventListener("change", updateRepaymentFields);
+
+    [
+      "monthFilter",
+      "recordSearch",
+      "recordTypeFilter",
+      "filterFrom",
+      "filterTo",
+      "reportPeriod",
+      "reportYear"
+    ].forEach(id => {
+      $(id)?.addEventListener("input", () => {
+        render();
+
+        if (id === "monthFilter") {
+          loadBudget().catch(error =>
+            toast(tr("error") + error.message)
+          );
+        }
+      });
+    });
+
+    $("generateReport")?.addEventListener("click", renderReports);
+    $("exportCsv")?.addEventListener("click", exportCSV);
+    $("exportExcel")?.addEventListener("click", exportExcel);
+    $("exportPdf")?.addEventListener("click", exportPDF);
+    $("languageToggle")?.addEventListener("click", setLanguage);
+
+    $("records")?.addEventListener("click", event => {
+      const editButton = event.target.closest("[data-edit]");
+      const deleteButton = event.target.closest("[data-delete]");
+
+      if (editButton) startEdit(editButton.dataset.edit);
+      if (deleteButton) deleteTransaction(deleteButton.dataset.delete);
+    });
+  }
+
+  async function init() {
+    if ($("monthFilter") && !$("monthFilter").value) {
+      $("monthFilter").value = currentMonth();
+    }
+
+    if ($("entryDate") && !$("entryDate").value) {
+      $("entryDate").value = today();
+    }
+
+    if ($("reportYear") && !$("reportYear").value) {
+      $("reportYear").value = today().slice(0, 4);
+    }
+
+    if ($("languageToggle")) {
+      $("languageToggle").textContent = tr("language");
+    }
+
+    bindEvents();
+    updateRepaymentFields();
+
+    if (sb) {
+      try {
+        const { data, error } = await sb.auth.getSession();
+        if (error) throw error;
+
+        if (data.session?.user) {
+          await activate(data.session.user);
+        } else {
+          mode = "offline";
+          showApp(false);
+          setSync(tr("offline"), "offline");
+        }
+
+        sb.auth.onAuthStateChange((_event, session) => {
+          if (session?.user) activate(session.user);
+        });
+      } catch (error) {
+        showApp(false);
+        setMessage("authMsg", tr("error") + error.message, true);
+      }
+    } else {
+      showApp(false);
+      setMessage(
+        "authMsg",
+        "Cloud login के लिए config.js में Supabase settings जाँचें।",
+        true
+      );
+    }
+
+    if ($("languageToggle")) {
+      $("languageToggle").textContent = tr("language");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
