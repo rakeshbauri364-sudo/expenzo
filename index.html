@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,6 +9,7 @@
   <title>Expenzo — Smart Expense Manager</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="option4-stylish-cards.css">
 </head>
 <body>
 <main class="ex-app">
@@ -20,22 +21,21 @@
         <p>Smart Expense Manager</p>
       </div>
     </div>
-    <button id="languageToggle" class="ex-button secondary" type="button">English</button>
+    <button id="languageToggle" class="ex-button secondary" type="button">हिन्दी</button>
   </header>
 
-  <!-- LOGIN -->
   <section id="authPanel" class="ex-card ex-auth">
-    <h2>अपने अकाउंट में लॉगिन करें</h2>
-    <p class="ex-muted">अपने खर्च और बजट को सुरक्षित तरीके से मैनेज करें।</p>
+    <h2>Log in to your account</h2>
+    <p class="ex-muted">Manage your expenses and budget securely.</p>
 
     <div class="ex-field">
       <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="email" placeholder="आपका email" required>
+      <input id="email" type="email" autocomplete="email" placeholder="Your email" required>
     </div>
 
     <div class="ex-field">
       <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="कम से कम 6 अक्षर" required>
+      <input id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters" required>
     </div>
 
     <div class="ex-actions">
@@ -43,13 +43,12 @@
       <button id="signupBtn" class="ex-button secondary" type="button">Sign Up</button>
     </div>
 
-    <p class="ex-muted center">या</p>
+    <p class="ex-muted center">OR</p>
     <button id="googleLoginBtn" class="ex-button outline full" type="button">Continue with Google</button>
-    <button id="offlineBtn" class="ex-button secondary full mt" type="button">बिना Login के Offline इस्तेमाल करें</button>
+    <button id="offlineBtn" class="ex-button secondary full mt" type="button">Continue Offline Without Login</button>
     <p id="authMsg" class="ex-message" role="status"></p>
   </section>
 
-  <!-- APPLICATION -->
   <section id="appPanel" class="hidden">
     <div class="dashboard-heading">
       <div>
@@ -62,141 +61,125 @@
       </div>
     </div>
 
-    <!-- HOME -->
     <section id="homeView" class="app-view">
       <section class="ex-card month-card">
-        <label for="monthFilter">महीना चुनें</label>
+        <label for="monthFilter">Select Month</label>
         <input id="monthFilter" type="month">
       </section>
 
       <section class="ex-stats">
         <div class="ex-stat">
-          <span class="ex-stat-label">कुल कमाई</span>
+          <span class="ex-stat-label">Total Income</span>
           <strong id="totalIncome" class="ex-stat-value ex-positive">₹0</strong>
         </div>
-
         <div class="ex-stat">
-          <span class="ex-stat-label">कुल खर्च</span>
+          <span class="ex-stat-label">Total Expenses</span>
           <strong id="totalExpense" class="ex-stat-value ex-negative">₹0</strong>
         </div>
-
         <div class="ex-stat">
-          <span class="ex-stat-label">नेट कैश बदलाव</span>
+          <span class="ex-stat-label">Net Cash Flow</span>
           <strong id="balance" class="ex-stat-value">₹0</strong>
         </div>
-
-        <!-- Premium ring caption -->
         <div id="budgetRingNote" class="ex-ringnote">
-          बजट उपयोग: 0% · बजट सेट करें
+          Budget used: 0% · Set a budget
         </div>
       </section>
 
-      <!-- BUDGET -->
       <section class="ex-card">
         <div class="section-title">
-          <h2>मासिक बजट</h2>
+          <h2>Monthly Budget</h2>
           <span>₹</span>
         </div>
-
         <div class="ex-field">
-          <label for="budgetInput">इस महीने का बजट</label>
+          <label for="budgetInput">Budget for this month</label>
           <div class="budget-row">
             <input id="budgetInput" type="number" min="0" step="0.01"
-                   inputmode="decimal" placeholder="जैसे 10000">
-            <button id="saveBudgetBtn" class="ex-button" type="button">सेव</button>
+                   inputmode="decimal" placeholder="e.g. 10000">
+            <button id="saveBudgetBtn" class="ex-button" type="button">Save</button>
           </div>
         </div>
-
         <div class="ex-progress-track">
           <div id="budgetProgress"></div>
         </div>
-        <p id="budgetText" class="ex-muted">बजट सेट करें।</p>
+        <p id="budgetText" class="ex-muted">Set a budget for this month.</p>
       </section>
 
       <section class="ex-card">
         <div class="section-title">
-          <h2>हाल के रिकॉर्ड</h2>
-          <button type="button" class="text-button" data-goto="recordsView">सभी देखें →</button>
+          <h2>Recent Records</h2>
+          <button type="button" class="text-button" data-goto="recordsView">View All →</button>
         </div>
-        <p class="ex-muted small">रिकॉर्ड देखने, खोजने या बदलने के लिए Records टैब खोलें।</p>
-        <button type="button" class="ex-button full" data-goto="addView">＋ नया रिकॉर्ड जोड़ें</button>
+        <p class="ex-muted small">Open Records to view, search or edit transactions.</p>
+        <button type="button" class="ex-button full" data-goto="addView">+ Add New Record</button>
       </section>
     </section>
 
-    <!-- RECORDS -->
     <section id="recordsView" class="app-view hidden">
       <section class="ex-card">
         <div class="section-title">
-          <h2>आपके रिकॉर्ड</h2>
-          <span id="recordCount" class="count-badge">0 रिकॉर्ड</span>
+          <h2>Your Records</h2>
+          <span id="recordCount" class="count-badge">0 records</span>
         </div>
-
         <div class="ex-field">
-          <label for="recordSearch">नाम, नोट या Category</label>
-          <input id="recordSearch" type="search" placeholder="रिकॉर्ड खोजें...">
+          <label for="recordSearch">Name, note or category</label>
+          <input id="recordSearch" type="search" placeholder="Search records...">
         </div>
-
         <div class="ex-grid ex-grid-2">
           <div class="ex-field">
-            <label for="recordTypeFilter">प्रकार</label>
+            <label for="recordTypeFilter">Type</label>
             <select id="recordTypeFilter">
-              <option value="all">सभी रिकॉर्ड</option>
-              <option value="income">कमाई</option>
-              <option value="expense">खर्च</option>
-              <option value="lend">उधार दिया</option>
-              <option value="borrow">उधार लिया</option>
-              <option value="repay">उधार वापसी</option>
+              <option value="all">All Records</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+              <option value="lend">Money Lent</option>
+              <option value="borrow">Money Borrowed</option>
+              <option value="repay">Repayment</option>
             </select>
           </div>
           <div class="ex-field">
-            <label for="filterFrom">शुरू की तारीख</label>
+            <label for="filterFrom">From Date</label>
             <input id="filterFrom" type="date">
           </div>
         </div>
-
         <div class="ex-field">
-          <label for="filterTo">अंतिम तारीख</label>
+          <label for="filterTo">To Date</label>
           <input id="filterTo" type="date">
         </div>
-
-        <button id="clearFilters" class="ex-button outline full" type="button">फ़िल्टर साफ़ करें</button>
+        <button id="clearFilters" class="ex-button outline full" type="button">Clear Filters</button>
       </section>
 
       <section class="ex-card">
-        <h2>रिकॉर्ड सूची</h2>
+        <h2>Record List</h2>
         <div id="records" class="ex-records">
-          <p class="ex-muted">रिकॉर्ड लोड हो रहे हैं...</p>
+          <p class="ex-muted">Loading records...</p>
         </div>
       </section>
     </section>
 
-    <!-- ADD / EDIT -->
     <section id="addView" class="app-view hidden">
       <section class="ex-card">
         <div class="section-title">
-          <h2>नया रिकॉर्ड</h2>
+          <h2>New Record</h2>
           <span>＋</span>
         </div>
-
         <button id="toggleEntryForm" type="button" class="ex-button secondary full">
-          ＋ नया रिकॉर्ड जोड़ें
+          + Add New Record
         </button>
 
         <form id="entryForm" class="hidden">
           <div class="ex-grid ex-grid-2">
             <div class="ex-field">
-              <label for="type">रिकॉर्ड का प्रकार</label>
+              <label for="type">Transaction Type</label>
               <select id="type" required>
-                <option value="expense">खर्च</option>
-                <option value="income">कमाई</option>
-                <option value="lend">उधार दिया</option>
-                <option value="borrow">उधार लिया</option>
-                <option value="repay">उधार वापसी</option>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+                <option value="lend">Money Lent</option>
+                <option value="borrow">Money Borrowed</option>
+                <option value="repay">Repayment</option>
               </select>
             </div>
-
             <div class="ex-field">
-              <label for="amount">राशि (₹)</label>
+              <label for="amount">Amount (₹)</label>
               <input id="amount" type="number" min="0.01" step="0.01"
                      inputmode="decimal" placeholder="0.00" required>
             </div>
@@ -206,78 +189,73 @@
             <div class="ex-field">
               <label for="category">Category</label>
               <select id="category" required>
-                <option value="राशन">राशन</option>
-                <option value="घर">घर</option>
-                <option value="यात्रा">यात्रा</option>
-                <option value="पेट्रोल">पेट्रोल</option>
-                <option value="शिक्षा">शिक्षा</option>
-                <option value="मेडिकल">मेडिकल</option>
-                <option value="सैलरी">सैलरी</option>
-                <option value="व्यापार">व्यापार</option>
-                <option value="अन्य">अन्य</option>
+                <option value="राशन">Groceries</option>
+                <option value="घर">Home</option>
+                <option value="यात्रा">Travel</option>
+                <option value="पेट्रोल">Fuel</option>
+                <option value="शिक्षा">Education</option>
+                <option value="मेडिकल">Medical</option>
+                <option value="सैलरी">Salary</option>
+                <option value="व्यापार">Business</option>
+                <option value="अन्य">Other</option>
               </select>
             </div>
-
             <div class="ex-field">
-              <label for="entryDate">तारीख</label>
+              <label for="entryDate">Date</label>
               <input id="entryDate" type="date" required>
             </div>
           </div>
 
           <div id="personField" class="ex-field hidden">
-            <label for="person">व्यक्ति का नाम</label>
-            <input id="person" type="text" maxlength="100" placeholder="किससे या किसको">
+            <label for="person">Person's Name</label>
+            <input id="person" type="text" maxlength="100" placeholder="Who was it with?">
           </div>
 
           <div id="repayDirectionField" class="ex-field hidden">
-            <label for="repayDirection">वापसी का प्रकार</label>
+            <label for="repayDirection">Repayment Type</label>
             <select id="repayDirection">
-              <option value="paid">मैंने उधार चुकाया</option>
-              <option value="received">मुझे उधार वापस मिला</option>
+              <option value="paid">I repaid a loan</option>
+              <option value="received">I received a repayment</option>
             </select>
           </div>
 
           <div class="ex-field">
-            <label for="note">नोट (वैकल्पिक)</label>
-            <textarea id="note" maxlength="1000" placeholder="रिकॉर्ड के बारे में लिखें"></textarea>
+            <label for="note">Note (optional)</label>
+            <textarea id="note" maxlength="1000" placeholder="Add a note"></textarea>
           </div>
 
           <div class="ex-actions">
-            <button type="submit" class="ex-button">रिकॉर्ड सेव करें</button>
-            <button id="cancelEdit" type="button" class="ex-button secondary hidden">Edit रद्द करें</button>
+            <button type="submit" class="ex-button">Save Record</button>
+            <button id="cancelEdit" type="button" class="ex-button secondary hidden">Cancel Edit</button>
           </div>
-
           <p id="entryMsg" class="ex-message" role="status"></p>
         </form>
       </section>
     </section>
 
-    <!-- REPORTS -->
     <section id="reportsView" class="app-view hidden">
       <section class="ex-card">
         <h2>Reports</h2>
-
         <div class="ex-grid ex-grid-2">
           <div class="ex-field">
-            <label for="reportPeriod">रिपोर्ट का समय</label>
+            <label for="reportPeriod">Report Period</label>
             <select id="reportPeriod">
-              <option value="month">मासिक रिपोर्ट</option>
-              <option value="year">वार्षिक रिपोर्ट</option>
+              <option value="month">Monthly Report</option>
+              <option value="year">Yearly Report</option>
             </select>
           </div>
           <div class="ex-field">
-            <label for="reportYear">साल</label>
+            <label for="reportYear">Year</label>
             <input id="reportYear" type="number" min="2000" max="2100" step="1">
           </div>
         </div>
-
-        <button id="generateReport" type="button" class="ex-button secondary full">रिपोर्ट दिखाएँ</button>
+        <button id="generateReport" type="button" class="ex-button secondary full">Show Report</button>
         <div id="reportSummary"></div>
       </section>
 
       <section class="ex-card">
-        <h2>Export और Backup</h2>
-        <p class="ex-muted small">चुने गए महीने और फ़िल्टर के रिकॉर्ड एक्सपोर्ट होंगे।</p>
+        <h2>Export &amp; Backup</h2>
+        <p class="ex-muted small">Records matching the selected month and filters will be exported.</p>
         <div class="ex-actions">
           <button id="exportExcel" type="button" class="ex-button">Excel</button>
           <button id="exportPdf" type="button" class="ex-button secondary">PDF</button>
@@ -289,11 +267,10 @@
 
   <footer class="ex-footer">
     Expenzo · Your money, clearly managed.<br>
-    अपने डेटा का नियमित Backup रखें।
+    Back up your data regularly.
   </footer>
 </main>
 
-<!-- BOTTOM NAVIGATION -->
 <nav id="bottomNav" class="ex-bottom-nav hidden" aria-label="Main navigation">
   <button type="button" data-view="homeView" class="active">
     <span class="nav-icon">⌂</span><span>Home</span>
@@ -329,7 +306,10 @@
   const form = $("entryForm");
   const toggle = $("toggleEntryForm");
 
-  // Navigation
+  function lang() {
+    return localStorage.getItem("expenzo_language_v1") || "en";
+  }
+
   function openView(id) {
     views.forEach(view => {
       $(view)?.classList.toggle("hidden", view !== id);
@@ -343,8 +323,7 @@
 
     if (id === "addView") {
       form?.classList.remove("hidden");
-      if (toggle) toggle.textContent =
-        lang() === "en" ? "− Close Form" : "− फॉर्म बंद करें";
+      if (toggle) toggle.textContent = lang() === "en" ? "− Close Form" : "+ नया रिकॉर्ड जोड़ें";
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -362,11 +341,10 @@
     const opening = form.classList.contains("hidden");
     form.classList.toggle("hidden", !opening);
     toggle.textContent = opening
-      ? (lang() === "en" ? "− Close Form" : "− फॉर्म बंद करें")
+      ? (lang() === "en" ? "− Close Form" : "＋ नया रिकॉर्ड जोड़ें")
       : (lang() === "en" ? "+ Add New Record" : "＋ नया रिकॉर्ड जोड़ें");
   });
 
-  // Clear record filters
   $("clearFilters")?.addEventListener("click", () => {
     $("recordSearch").value = "";
     $("recordTypeFilter").value = "all";
@@ -383,7 +361,6 @@
     if (event.target.closest("[data-edit]")) openView("addView");
   });
 
-  // Show bottom navigation only when app is open
   function updateNav() {
     const visible = app && !app.classList.contains("hidden") &&
       auth && auth.classList.contains("hidden");
@@ -399,7 +376,6 @@
     });
   }
 
-  // Premium budget ring syncs with the existing budget progress indicator
   const stats = document.querySelector(".ex-stats");
   const progress = $("budgetProgress");
   const ringNote = $("budgetRingNote");
@@ -408,10 +384,7 @@
   function syncBudgetRing() {
     if (!stats || !progress) return;
 
-    const rawWidth = progress.style.width || getComputedStyle(progress).width;
-    let used = Number.parseFloat(rawWidth) || 0;
-
-    // Inline percentage is the normal value used by the budget script.
+    let used = 0;
     if (String(progress.style.width).includes("%")) {
       used = Number.parseFloat(progress.style.width) || 0;
     } else {
@@ -424,10 +397,8 @@
     stats.style.setProperty("--used", String(used));
 
     if (ringNote) {
-      const message = budgetText?.textContent?.trim() || "बजट सेट करें";
-      ringNote.textContent = lang() === "en"
-        ? `Budget used: ${Math.round(used)}% · ${message}`
-        : `बजट उपयोग: ${Math.round(used)}% · ${message}`;
+      const message = budgetText?.textContent?.trim() || "Set a budget";
+      ringNote.textContent = `Budget used: ${Math.round(used)}% · ${message}`;
     }
   }
 
@@ -442,14 +413,13 @@
       });
     }
 
-    if (progress.parentElement) {
+    if (progress.parentElement && "ResizeObserver" in window) {
       new ResizeObserver(syncBudgetRing).observe(progress.parentElement);
     }
 
     syncBudgetRing();
   }
 
-  // Hindi / English interface labels
   const en = {
     "अपने अकाउंट में लॉगिन करें": "Log in to your account",
     "अपने खर्च और बजट को सुरक्षित तरीके से मैनेज करें।": "Manage your expenses and budget securely.",
@@ -459,7 +429,7 @@
     "बिना Login के Offline इस्तेमाल करें": "Continue Offline Without Login",
     "महीना चुनें": "Select Month",
     "कुल कमाई": "Total Income",
-    "कुल खर्च": "Total Expense",
+    "कुल खर्च": "Total Expenses",
     "नेट कैश बदलाव": "Net Cash Flow",
     "मासिक बजट": "Monthly Budget",
     "इस महीने का बजट": "Budget for this month",
@@ -512,10 +482,6 @@
     "Reports": "Reports"
   };
 
-  function lang() {
-    return localStorage.getItem("expenzo_language_v1") || "hi";
-  }
-
   const originals = new WeakMap();
 
   function translateTree() {
@@ -524,7 +490,6 @@
 
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const nodes = [];
-
     while (walker.nextNode()) nodes.push(walker.currentNode);
 
     nodes.forEach(node => {
@@ -532,7 +497,6 @@
       if (!parent || ["SCRIPT", "STYLE"].includes(parent.tagName)) return;
 
       if (!originals.has(node)) originals.set(node, node.nodeValue);
-
       const source = originals.get(node);
       const trimmed = source.trim();
       if (!trimmed) return;
@@ -562,19 +526,15 @@
     const languageButton = $("languageToggle");
     if (languageButton) languageButton.textContent = language === "hi" ? "English" : "हिन्दी";
 
-    const formButton = $("toggleEntryForm");
-    if (formButton && form && !form.classList.contains("hidden")) {
-      formButton.textContent = language === "en" ? "− Close Form" : "− फॉर्म बंद करें";
-    }
-
     syncBudgetRing();
   }
 
   $("languageToggle")?.addEventListener("click", () => {
-    setTimeout(translateTree, 50);
+    const nextLanguage = lang() === "en" ? "hi" : "en";
+    localStorage.setItem("expenzo_language_v1", nextLanguage);
+    translateTree();
   });
 
-  // app.js and UI actions may update text dynamically
   const observer = new MutationObserver(() => {
     if (lang() === "en") translateTree();
     updateNav();
